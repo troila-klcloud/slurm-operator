@@ -1,0 +1,133 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: cluster-example-pvc
+  namespace: ns-02
+spec:
+  storageClassName: juicefs-sc
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 3Gi
+---
+apiVersion: slurm.kunluncloud.com/v1alpha1
+kind: Cluster
+metadata:
+  name: cluster-example
+  namespace: ns-02
+spec:
+  persistentVolumeClaimName: cluster-example-pvc
+  loginNode:
+    size: 1
+    serviceType: NodePort
+    mungeContainer:
+      cpu:  100m
+      memory: 100Mi
+      image: registry.cn-hangzhou.aliyuncs.com/troila-klcloud/ubuntu-munge:24.04
+      imagePullPolicy: IfNotPresent
+    sssdContainer:
+      cpu:  100m
+      memory: 100Mi
+      image: registry.cn-hangzhou.aliyuncs.com/troila-klcloud/ubuntu-sssd:24.04
+      imagePullPolicy: IfNotPresent
+    sshdContainer:
+      cpu: 1
+      memory: 512Mi
+      image: registry.cn-hangzhou.aliyuncs.com/troila-klcloud/ubuntu-sshd:24.04
+      imagePullPolicy: IfNotPresent
+  controllerNode:
+    size: 2
+    spoolStroageClassName: juicefs-sc
+    mungeContainer:
+      cpu:  100m
+      memory: 100Mi
+      image: registry.cn-hangzhou.aliyuncs.com/troila-klcloud/ubuntu-munge:24.04
+      imagePullPolicy: IfNotPresent
+    sssdContainer:
+      cpu:  100m
+      memory: 100Mi
+      image: registry.cn-hangzhou.aliyuncs.com/troila-klcloud/ubuntu-sssd:24.04
+      imagePullPolicy: IfNotPresent
+    slurmctldContainer:
+      cpu:  200m
+      memory: 200Mi
+      image: registry.cn-hangzhou.aliyuncs.com/troila-klcloud/ubuntu-slurmctld:24.04
+      imagePullPolicy: IfNotPresent
+  accountingNode:
+    size: 2
+    mungeContainer:
+      cpu:  100m
+      memory: 100Mi
+      image: registry.cn-hangzhou.aliyuncs.com/troila-klcloud/ubuntu-munge:24.04
+      imagePullPolicy: IfNotPresent
+    slurmdbdContainer:
+      cpu:  100m
+      memory: 200Mi
+      image: registry.cn-hangzhou.aliyuncs.com/troila-klcloud/ubuntu-slurmdbd:24.04
+      imagePullPolicy: IfNotPresent
+  database:
+    cpu: 200m
+    memory: 1Gi
+    storage:
+      storageClassName: juicefs-sc
+      size: 5Gi
+  webNode:
+    size: 1
+    port: 8080
+    webContainer:
+      cpu:  100m
+      memory: 100Mi
+      image: registry.cn-hangzhou.aliyuncs.com/troila-klcloud/ubuntu-java:24.04
+      imagePullPolicy: IfNotPresent
+    mungeContainer:
+      cpu:  100m
+      memory: 100Mi
+      image: registry.cn-hangzhou.aliyuncs.com/troila-klcloud/ubuntu-munge:24.04
+      imagePullPolicy: IfNotPresent
+    initSqlContainer:
+      cpu:  100m
+      memory: 100Mi
+      image: registry.cn-hangzhou.aliyuncs.com/troila-klcloud/ubuntu-sshd:24.04
+      imagePullPolicy: IfNotPresent
+    sssdContainer:
+      cpu:  100m
+      memory: 100Mi
+      image: registry.cn-hangzhou.aliyuncs.com/troila-klcloud/ubuntu-sssd:24.04
+      imagePullPolicy: IfNotPresent
+  computingNodeSets:
+  - partitionName: p1
+    size: 2
+    mungeContainer:
+      cpu:  100m
+      memory: 100Mi
+      image: registry.cn-hangzhou.aliyuncs.com/troila-klcloud/ubuntu-munge:24.04
+      imagePullPolicy: IfNotPresent
+    sssdContainer:
+      cpu:  100m
+      memory: 100Mi
+      image: registry.cn-hangzhou.aliyuncs.com/troila-klcloud/ubuntu-sssd:24.04
+      imagePullPolicy: IfNotPresent
+    slurmdContainer:
+      cpu: 2
+      memory: 512Mi
+      image: registry.cn-hangzhou.aliyuncs.com/troila-klcloud/ubuntu-slurmd:24.04
+      imagePullPolicy: IfNotPresent
+  - partitionName: p2
+    size: 1
+    mungeContainer:
+      cpu:  100m
+      memory: 100Mi
+      image: registry.cn-hangzhou.aliyuncs.com/troila-klcloud/ubuntu-munge:24.04
+      imagePullPolicy: IfNotPresent
+    sssdContainer:
+      cpu:  100m
+      memory: 100Mi
+      image: registry.cn-hangzhou.aliyuncs.com/troila-klcloud/ubuntu-sssd:24.04
+      imagePullPolicy: IfNotPresent
+    slurmdContainer:
+      cpu: 2
+      memory: 512Mi
+      image: registry.cn-hangzhou.aliyuncs.com/troila-klcloud/ubuntu-slurmd:24.04
+      imagePullPolicy: IfNotPresent
+    gpu: "nvidia.com/gpu.shared"

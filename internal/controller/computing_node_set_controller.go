@@ -128,6 +128,7 @@ func (r *ClusterReconciler) reconcileComputingNodeSets(ctx context.Context, clus
 			patch := client.MergeFrom(objSts.DeepCopy())
 			objSts.Spec.Replicas = expectedSts.Spec.Replicas
 			objSts.Spec.Template.Spec.Containers = expectedSts.Spec.Template.Spec.Containers
+			objSts.Spec.Template.Spec.Volumes = expectedSts.Spec.Template.Spec.Volumes
 			if err = r.Patch(ctx, objSts, patch); err != nil {
 				msg := "Failed to patch computing node set statefulset"
 				log.Error(err, msg)

@@ -33,8 +33,9 @@ func generateComputingNodeSetStatefulSet(cluster slurmv1alpha1.Cluster, spec slu
 	matchLabels := render.RenderMatchLabels(component, cluster.Name)
 	sts := &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      utils.BuildStatefulSetName(component, cluster.Name),
-			Namespace: cluster.Namespace,
+			Name:        utils.BuildStatefulSetName(component, cluster.Name),
+			Namespace:   cluster.Namespace,
+			Annotations: render.RenderWaveAnnotations(),
 		},
 		Spec: appsv1.StatefulSetSpec{
 			ServiceName: utils.BuildServiceName(component, cluster.Name),

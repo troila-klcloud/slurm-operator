@@ -61,8 +61,9 @@ func generateAccountingNodeDeployment(cluster *slurmv1alpha1.Cluster, spec slurm
 
 	return &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      utils.BuildDeploymentName(consts.ComponentTypeAccounting, cluster.Name),
-			Namespace: cluster.Namespace,
+			Name:        utils.BuildDeploymentName(consts.ComponentTypeAccounting, cluster.Name),
+			Namespace:   cluster.Namespace,
+			Annotations: render.RenderWaveAnnotations(),
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: ptr.To(spec.Size),

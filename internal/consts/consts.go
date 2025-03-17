@@ -99,3 +99,7 @@ const (
 	KindGrant                 = "Grant"
 	KindPod                   = "Pod"
 )
+
+const (
+	WaveOnConfigChangeKey = "wave.pusher.com/update-on-config-change"
+)

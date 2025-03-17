@@ -24,8 +24,9 @@ func generateLoginNodeDeployment(cluster slurmv1alpha1.Cluster, spec slurmv1alph
 	// var sssdConfigFileMode int32 = 0600
 	return &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      utils.BuildDeploymentName(consts.ComponentTypeLogin, cluster.Name),
-			Namespace: cluster.Namespace,
+			Name:        utils.BuildDeploymentName(consts.ComponentTypeLogin, cluster.Name),
+			Namespace:   cluster.Namespace,
+			Annotations: render.RenderWaveAnnotations(),
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: ptr.To(spec.Size),

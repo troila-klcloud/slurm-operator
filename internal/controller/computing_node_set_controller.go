@@ -33,8 +33,9 @@ func generateComputingNodeSetStatefulSet(cluster slurmv1alpha1.Cluster, spec slu
 	matchLabels := render.RenderMatchLabels(component, cluster.Name)
 	sts := &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      utils.BuildStatefulSetName(component, cluster.Name),
-			Namespace: cluster.Namespace,
+			Name:        utils.BuildStatefulSetName(component, cluster.Name),
+			Namespace:   cluster.Namespace,
+			Annotations: render.RenderWaveAnnotations(),
 		},
 		Spec: appsv1.StatefulSetSpec{
 			ServiceName: utils.BuildServiceName(component, cluster.Name),
@@ -128,6 +129,7 @@ func (r *ClusterReconciler) reconcileComputingNodeSets(ctx context.Context, clus
 			patch := client.MergeFrom(objSts.DeepCopy())
 			objSts.Spec.Replicas = expectedSts.Spec.Replicas
 			objSts.Spec.Template.Spec.Containers = expectedSts.Spec.Template.Spec.Containers
+			objSts.Spec.Template.Spec.Volumes = expectedSts.Spec.Template.Spec.Volumes
 			if err = r.Patch(ctx, objSts, patch); err != nil {
 				msg := "Failed to patch computing node set statefulset"
 				log.Error(err, msg)

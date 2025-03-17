@@ -24,8 +24,9 @@ func generateWebNodeDeployment(cluster slurmv1alpha1.Cluster, spec slurmv1alpha1
 
 	deploy := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      utils.BuildDeploymentName(consts.ComponentTypeWeb, cluster.Name),
-			Namespace: cluster.Namespace,
+			Name:        utils.BuildDeploymentName(consts.ComponentTypeWeb, cluster.Name),
+			Namespace:   cluster.Namespace,
+			Annotations: render.RenderWaveAnnotations(),
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: ptr.To(spec.Size),

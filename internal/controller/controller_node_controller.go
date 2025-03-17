@@ -44,8 +44,9 @@ func generateControllerNodeStatefulSet(cluster slurmv1alpha1.Cluster, spec slurm
 	matchLabels := render.RenderMatchLabels(consts.ComponentTypeController, cluster.Name)
 	return &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      utils.BuildStatefulSetName(consts.ComponentTypeController, cluster.Name),
-			Namespace: cluster.Namespace,
+			Name:        utils.BuildStatefulSetName(consts.ComponentTypeController, cluster.Name),
+			Namespace:   cluster.Namespace,
+			Annotations: render.RenderWaveAnnotations(),
 		},
 		Spec: appsv1.StatefulSetSpec{
 			Replicas:    ptr.To(spec.Size),

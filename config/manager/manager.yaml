@@ -69,7 +69,7 @@ spec:
           - -ldap-searce-base=dc=example,dc=org
           - -ldap-skip-insecure-tls=true
           - -ldap-uri=ldap://openldap.openldap.svc.cluster.local
-        image: registry.cn-hangzhou.aliyuncs.com/troila-klcloud/slurm-operator:v0.1.8
+        image: registry.cn-hangzhou.aliyuncs.com/troila-klcloud/slurm-operator:v0.1.9
         name: manager
         ports: []
         env:

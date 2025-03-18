@@ -10,33 +10,11 @@ import (
 	"github.com/troila-klcloud/slurm-operator/internal/utils"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
-
-func generateSpoolPVC(cluster *slurmv1alpha1.Cluster, spec slurmv1alpha1.CtrlNodeSpec) *corev1.PersistentVolumeClaim {
-	return &corev1.PersistentVolumeClaim{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      utils.BildPersistentVolumeClaimName(consts.ComponentTypeController, cluster.Name),
-			Namespace: cluster.Namespace,
-		},
-		Spec: corev1.PersistentVolumeClaimSpec{
-			StorageClassName: &spec.SpoolStorageClassName,
-			AccessModes:      []corev1.PersistentVolumeAccessMode{corev1.ReadWriteMany},
-			Resources: corev1.VolumeResourceRequirements{
-				Requests: corev1.ResourceList{
-					corev1.ResourceStorage: resource.MustParse("100Mi"),
-				},
-				Limits: corev1.ResourceList{
-					corev1.ResourceStorage: resource.MustParse("100Mi"),
-				},
-			},
-		},
-	}
-}
 
 func generateControllerNodeStatefulSet(cluster slurmv1alpha1.Cluster, spec slurmv1alpha1.CtrlNodeSpec) *appsv1.StatefulSet {
 	resourceList := corev1.ResourceList{corev1.ResourceCPU: spec.SlurmCtldContainer.CPU, corev1.ResourceMemory: spec.SlurmCtldContainer.Memory}
@@ -91,9 +69,7 @@ func generateControllerNodeStatefulSet(cluster slurmv1alpha1.Cluster, spec slurm
 						{
 							Name: "slurm-spool",
 							VolumeSource: corev1.VolumeSource{
-								PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
-									ClaimName: utils.BildPersistentVolumeClaimName(consts.ComponentTypeController, cluster.Name),
-								},
+								EmptyDir: &corev1.EmptyDirVolumeSource{},
 							},
 						},
 						renderSSSDConfigVolume(cluster.Name),
@@ -118,11 +94,6 @@ func (r *ClusterReconciler) reconcileControllerNode(ctx context.Context, cluster
 		return errors.Wrap(err, "Failed to reconcile controller node service")
 	}
 
-	expectedPVC := generateSpoolPVC(cluster, spec)
-	_, err = r.getOrCreateK8sResource(ctx, cluster, expectedPVC)
-	if err != nil {
-		return errors.Wrap(err, "Failed to reconcile controller node spool dir persistentvolumeclaim")
-	}
 	expectedSts := generateControllerNodeStatefulSet(*cluster, spec)
 	foundSts, err := r.getOrCreateK8sResource(ctx, cluster, expectedSts)
 	if err != nil {

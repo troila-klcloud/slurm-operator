@@ -100,6 +100,7 @@ func generateSlurmConfig(cluster *slurmv1alpha1.Cluster) utils.ConfigFile {
 
 	res.AddProperty("JobAcctGatherType", "jobacct_gather/linux")
 	res.AddProperty("JobAcctGatherFrequency", "task=30")
+	res.AddProperty("AccountingStorageEnforce", "associations,limits,qos")
 	res.AddProperty("AccountingStorageTRES", "gres/gpu,gres/shard")
 	res.AddProperty("AccountingStorageType", "accounting_storage/slurmdbd")
 	res.AddProperty("AccountingStorageHost", utils.BuildServiceFQDN(consts.ComponentTypeAccounting, cluster.Namespace, cluster.Name))
@@ -117,6 +118,7 @@ func generateSlurmConfig(cluster *slurmv1alpha1.Cluster) utils.ConfigFile {
 	res.AddProperty("SchedulerType", "sched/backfill")
 	res.AddProperty("SelectType", "select/cons_tres")
 	res.AddProperty("SelectTypeParameters", "CR_Core_Memory")
+	res.AddProperty("DefMemPerCPU", "1024")
 	res.AddComment("")
 	res.AddComment("LOGGING")
 	res.AddProperty("SlurmctldDebug", consts.SlurmDefaultDebugLevel)

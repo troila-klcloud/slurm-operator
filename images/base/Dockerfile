@@ -18,6 +18,7 @@ RUN apt-get update \
        git vim make iproute2 sudo \
        apt-transport-https ca-certificates curl gnupg-agent software-properties-common \
        wget python3 gcc python3-dev dumb-init libnss-sss libpam-sss ldap-utils \
+       language-pack-zh-hans language-pack-zh-hant \
     && apt clean
 
 

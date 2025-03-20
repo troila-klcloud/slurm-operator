@@ -1,0 +1,32 @@
+# Default values for slurm-operator.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
+replicaCount: 3
+
+# This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
+image:
+  repository: registry.cn-hangzhou.aliyuncs.com/troila-klcloud/slurm-operator
+  # This sets the pull policy for images.
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: v0.2.1
+
+# This is for the secretes for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+imagePullSecrets: []
+# This is to override the chart name.
+nameOverride: ""
+fullnameOverride: ""
+
+
+ldap:
+  uri: ldap://openldap.openldap.svc.cluster.local
+  defaultAuthtok: Not@SecurePassw0rd
+  defaultAuthtokType: password
+  defaultBindDn: cn=admin,dc=example,dc=org
+  searceBase: dc=example,dc=org
+  skipInsecureTls: true
+
+podAnnotations:
+  kubectl.kubernetes.io/default-container: manager

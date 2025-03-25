@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    {{- include "slurm-operator.labels" . | nindent 4 }}
+  name: {{ include "slurm-operator.fullname" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "slurm-operator.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "slurm-operator.labels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+      - args:
+        - --leader-elect
+        - --health-probe-bind-address=:8081
+        - -ldap-default-authtok={{ required "A valid .Values.ldap.defaultAuthtok required" .Values.ldap.defaultAuthtok }}
+        - -ldap-default-authtok-type={{ .Values.ldap.defaultAuthtokType }}
+        - -ldap-default-bind-dn={{ .Values.ldap.defaultBindDn }}
+        - -ldap-searce-base={{ .Values.ldap.searceBase }}
+        {{- if .Values.ldap.skipInsecureTls }}
+        - -ldap-skip-insecure-tls=true
+        {{- else }}
+        - -ldap-skip-insecure-tls=false
+        {{- end }}
+        - -ldap-uri={{ .Values.ldap.uri }}
+        command:
+        - /manager
+        env:
+        - name: ENABLE_WEBHOOKS
+          value: "false"
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8081
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        name: manager
+        ports: []
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 8081
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources:
+          limits:
+            cpu: 500m
+            memory: 128Mi
+          requests:
+            cpu: 10m
+            memory: 64Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts: []
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: {{ include "slurm-operator.fullname" . }}
+      terminationGracePeriodSeconds: 10

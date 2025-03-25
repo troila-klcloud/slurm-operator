@@ -1,0 +1,40 @@
+name: Release Charts
+
+on:
+  push:
+    paths:
+      - 'main'
+
+jobs:
+  release:
+    # depending on default permission settings for your org (contents being read-only or read-write for workloads), you will have to add permissions
+    # see: https://docs.github.com/en/actions/security-guides/automatic-token-authentication#modifying-the-permissions-for-the-github_token
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v46.0.3
+        with:
+          files: charts/**
+
+      - name: Configure Git
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+      - name: Run chart-releaser
+        if: steps.changed-files.outputs.any_changed == 'true'
+        uses: helm/chart-releaser-action@v1.7.0
+        with:
+          charts_dir: charts
+          skip_existing: false
+        env:
+          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"

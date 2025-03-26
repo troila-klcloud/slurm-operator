@@ -2,7 +2,6 @@
 FROM golang:1.23 AS builder
 ARG TARGETOS
 ARG TARGETARCH
-ARG GOPROXY=https://goproxy.cn
 
 WORKDIR /workspace
 # Copy the Go Modules manifests

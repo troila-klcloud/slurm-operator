@@ -1,0 +1,62 @@
+name: Release
+
+on:
+    push:
+      tags:
+      - 'v*'
+
+jobs:
+  bump_helm_chart:
+    permissions: write-all
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Get helm chart info
+      id: chart_info
+      uses: pietrobolcato/action-read-yaml@1.1.0
+      with:
+        config: ${{ github.workspace }}/charts/slurm-operator/Chart.yaml
+
+    - name: Bump chart versoin
+      id: new_chart_version
+      uses: "WyriHaximus/github-action-next-semvers@v1"
+      with:
+        version: ${{ steps.chart_info.outputs['version'] }}
+
+    - name: Get application version
+      id: app_version
+      uses: "WyriHaximus/github-action-get-previous-tag@v1"
+      with:
+        fallback: v0.0.0
+
+    - name: Update chart version
+      uses: fjogeleit/yaml-update-action@main
+      with:
+        valueFile: 'charts/slurm-operator/Chart.yaml'
+        propertyPath: 'version'
+        value: ${{ steps.new_chart_version.outputs.patch }}
+        commitChange: false
+
+    - name: Update app version
+      uses: fjogeleit/yaml-update-action@main
+      with:
+        valueFile: 'charts/slurm-operator/Chart.yaml'
+        propertyPath: 'appVersion'
+        value: ${{ steps.app_version.outputs.tag }}
+        commitChange: false
+
+    - name: Update values.yaml to change default image tag
+      uses: fjogeleit/yaml-update-action@main
+      with:
+        valueFile: 'charts/slurm-operator/values.yaml'
+        propertyPath: 'image.tag'
+        value: ${{ steps.app_version.outputs.tag }}
+        commitChange: false
+
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v7
+      with:
+        commit-message: "[automated] Bump helm chart"
+        base: "main"

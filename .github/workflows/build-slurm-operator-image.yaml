@@ -19,8 +19,10 @@ jobs:
       uses: tj-actions/changed-files@v46
       with:
         files: |
-          ./*.go
+          ./**/*.go
           Dockerfile
+          go.mod
+          go.sum
 
     - name: Login to aliyun acr
       if: github.event_name != 'pull_request' || steps.changed-files.outputs.any_changed == 'true'

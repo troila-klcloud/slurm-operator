@@ -43,7 +43,15 @@ jobs:
       uses: fjogeleit/yaml-update-action@main
       with:
         valueFile: 'charts/slurm-operator/Chart.yaml'
-        propertyPath: appVersion
+        propertyPath: 'appVersion'
+        value: ${{ steps.app_version.outputs.tag }}
+        commitChange: false
+
+    - name: Update values.yaml to change default image tag
+      uses: fjogeleit/yaml-update-action@main
+      with:
+        valueFile: 'charts/slurm-operator/values.yaml'
+        propertyPath: 'image.tag'
         value: ${{ steps.app_version.outputs.tag }}
         commitChange: false
 

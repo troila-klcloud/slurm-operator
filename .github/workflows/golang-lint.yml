@@ -1,8 +1,6 @@
 name: Lint
 
-on:
-  push:
-  pull_request:
+on: pull_request
 
 jobs:
   lint:
@@ -12,12 +10,20 @@ jobs:
       - name: Clone the code
         uses: actions/checkout@v4
 
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v46
+        with:
+          files: ./*.go
+
       - name: Setup Go
+        if: steps.changed-files.outputs.any_changed == 'true'
         uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
 
       - name: Run linter
+        if: steps.changed-files.outputs.any_changed == 'true'
         uses: golangci/golangci-lint-action@v6
         with:
           version: v1.62.2

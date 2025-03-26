@@ -1,0 +1,44 @@
+name: Lint and Test Charts
+
+on: pull_request
+
+jobs:
+  lint-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v46
+        with:
+          files: charts/**
+
+      - name: Set up Helm
+        if: steps.changed-files.outputs.any_changed == 'true'
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.17.0
+
+      - uses: actions/setup-python@v5
+        if: steps.changed-files.outputs.any_changed == 'true'
+        with:
+          python-version: '3.x'
+          check-latest: true
+
+      - name: Set up chart-testing
+        if: steps.changed-files.outputs.any_changed == 'true'
+        uses: helm/chart-testing-action@v2
+
+      - name: Run chart-testing (lint)
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: ct lint --target-branch ${{ github.event.repository.default_branch }}
+
+      - name: Create kind cluster
+        if: steps.changed-files.outputs.any_changed == 'true'
+        uses: helm/kind-action@v1
+
+      - name: Run chart-testing (install)
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: ct install --target-branch ${{ github.event.repository.default_branch }}

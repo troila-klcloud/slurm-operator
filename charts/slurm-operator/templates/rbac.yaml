@@ -1,0 +1,206 @@
+{{ $fullName := include "slurm-operator.fullname" . }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    {{- include "slurm-operator.labels" . | nindent 4 }}
+  name: {{ $fullName }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    {{- include "slurm-operator.labels" . | nindent 4 }}
+  name: {{ printf "%s-leader-election" $fullName | trunc 63 | trimSuffix "-" }}
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ printf "%s-manager" $fullName | trunc 63 | trimSuffix "-" }}
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  - secrets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - get
+  - list
+  - patch
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - persistentvolumeclaims
+  - services
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  - statefulsets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - watch
+- apiGroups:
+  - k8s.mariadb.com
+  resources:
+  - grants
+  - mariadbs
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - watch
+- apiGroups:
+  - slurm.kunluncloud.com
+  resources:
+  - clusters
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - slurm.kunluncloud.com
+  resources:
+  - clusters/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - slurm.kunluncloud.com
+  resources:
+  - clusters/status
+  verbs:
+  - get
+  - patch
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ printf "%s-metrics-auth" $fullName | trunc 63 | trimSuffix "-" }}
+rules:
+- apiGroups:
+  - authentication.k8s.io
+  resources:
+  - tokenreviews
+  verbs:
+  - create
+- apiGroups:
+  - authorization.k8s.io
+  resources:
+  - subjectaccessreviews
+  verbs:
+  - create
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    {{- include "slurm-operator.labels" . | nindent 4 }}
+  name: {{ printf "%s-leader-election" $fullName | trunc 63 | trimSuffix "-" }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ printf "%s-leader-election" $fullName | trunc 63 | trimSuffix "-" }}
+subjects:
+- kind: ServiceAccount
+  name: {{ $fullName }}
+  namespace: {{ .Release.Namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    {{- include "slurm-operator.labels" . | nindent 4 }}
+  name: {{ printf "%s-manager" $fullName | trunc 63 | trimSuffix "-" }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ printf "%s-manager" $fullName | trunc 63 | trimSuffix "-" }}
+subjects:
+- kind: ServiceAccount
+  name: {{ $fullName }}
+  namespace: {{ .Release.Namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ printf "%s-metrics-auth" $fullName | trunc 63 | trimSuffix "-" }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ printf "%s-metrics-auth" $fullName | trunc 63 | trimSuffix "-" }}
+subjects:
+- kind: ServiceAccount
+  name: {{ $fullName }}
+  namespace: {{ .Release.Namespace }}

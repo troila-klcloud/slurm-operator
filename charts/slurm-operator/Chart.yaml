@@ -3,8 +3,8 @@ name: slurm-operator
 description: A Helm chart for slurm-operator
 home: https://github.com/troila-klcloud/slurm-operator
 type: application
-version: 1.0.1
-appVersion: v1.0.0
+version: 1.0.2
+appVersion: v1.0.1
 maintainers:
   - email: klcsales@troila.com
     name: klcloud

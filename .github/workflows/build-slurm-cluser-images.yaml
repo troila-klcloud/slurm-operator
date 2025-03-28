@@ -1,0 +1,283 @@
+name: Build slurm cluser images
+
+on:
+  pull_request:
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Get changed files
+      id: changed-files
+      uses: tj-actions/changed-files@v46
+      with:
+        files: |
+          images/base/**
+          images/munge/**
+          images/sssd/**
+          images/slurm-base/**
+          images/slurmctld/**
+          images/slurmd/**
+          images/slurmdbd/**
+          images/sshd/**
+          images/develop/**
+          images/web/**
+        files_yaml: |
+          base:
+            - 'images/base/**'
+          munge:
+            - 'images/munge/**'
+          sssd:
+            - 'images/sssd/**'
+          slurm_base:
+            - 'images/slurm-base/**'
+          slurmctld:
+            - 'images/slurmctld/**'
+          slurmd:
+            - 'images/slurmd/**'
+          slurmdbd:
+            - 'images/slurmdbd/**'
+          sshd:
+            - 'images/sshd/**'
+          develop:
+            - 'images/develop/**'
+          web:
+            - 'images/web/**'
+
+    - name: Set condition env variables
+      if: steps.changed-files.outputs.any_changed == 'true'
+      env:
+        BASE_CHANGED: ${{ steps.changed-files.outputs.base_any_changed }}
+        BASE_CONTEXT: "images/base/"
+        MUNGE_CHANGED: ${{ steps.changed-files.outputs.munge_any_changed }}
+        MUNGE_CONTEXT: "images/munge/"
+        SSSD_CHANGED: ${{ steps.changed-files.outputs.sssd_any_changed }}
+        SSSD_CONTEXT: "images/sssd/"
+        SLURM_BASE_CHANGED: ${{ steps.changed-files.outputs.slurm_base_any_changed }}
+        SLURM_BASE_CONTEXT: "images/slurm-base/"
+        SLURMCTLD_CHANGED: ${{ steps.changed-files.outputs.slurmctld_any_changed }}
+        SLURMCTLD_CONTEXT: "images/slurmctld/"
+        SLURMD_CHANGED: ${{ steps.changed-files.outputs.slurmd_any_changed }}
+        SLURMD_CONTEXT: "images/slurmd/"
+        SLURMDBD_CHANGED: ${{ steps.changed-files.outputs.slurmdbd_any_changed }}
+        SLURMDBD_CONTEXT: "images/slurmdbd/"
+        SSHD_CHANGED: ${{ steps.changed-files.outputs.sshd_any_changed }}
+        SSHD_CONTEXT: "images/sshd/"
+        DEVELOP_CHANGED: ${{ steps.changed-files.outputs.develop_any_changed }}
+        DEVELOP_CONTEXT: "images/develop/"
+        WEB_CHANGED: ${{ steps.changed-files.outputs.web_any_changed }}
+        WEB_CONTEXT: "images/web/"
+      run: |
+        if [[ "${BASE_CHANGED}" == "true" ]]; then
+          BUILD_BASE=true
+          BUILD_MUNGE=true
+          BUILD_SSSD=true
+          BUILD_SLURM_BASE=true
+          BUILD_SLURMCTLD=true
+          BUILD_SLURMD=true
+          BUILD_SLURMDBD=true
+          BUILD_SSHD=true
+          BUILD_DEVELOP=true
+          BUILD_WEB=true
+        fi
+        if [[ "${MUNGE_CHANGED}" == "true" ]]; then
+          BUILD_MUNGE=true
+        fi
+        if [[ "${SSSD_CHANGED}" == "true" ]]; then
+          BUILD_SSSD=true
+        fi
+        if [[ "${SLURM_BASE_CHANGED}" == "true" ]]; then
+          BUILD_SLURM_BASE=true
+          BUILD_SLURMCTLD=true
+          BUILD_SLURMD=true
+          BUILD_SLURMDBD=true
+          BUILD_SSHD=true
+        fi
+        if [[ "${SLURMCTLD_CHANGED}" == "true" ]]; then
+          BUILD_SLURMCTLD=true
+        fi
+        if [[ "${SLURMD_CHANGED}" == "true" ]]; then
+          BUILD_SLURMD=true
+        fi
+        if [[ "${SLURMDBD_CHANGED}" == "true" ]]; then
+          BUILD_SLURMDBD=true
+        fi
+        if [[ "${SSHD_CHANGED}" == "true" ]]; then
+          BUILD_SSHD=true
+          BUILD_DEVELOP=true
+          BUILD_WEB=true
+        fi
+        if [[ "${DEVELOP_CHANGED}" == "true" ]]; then
+          BUILD_DEVELOP=true
+          BUILD_WEB=true
+        fi
+        if [[ "${WEB_CHANGED}" == "true" ]]; then
+          BUILD_WEB=true
+        fi
+
+        echo "BUILD_BASE=${BUILD_BASE}" >> $GITHUB_ENV
+        echo "BUILD_BASE_CONTEXT=${BASE_CONTEXT}" >> $GITHUB_ENV
+        echo "BUILD_MUNGE=${BUILD_MUNGE}" >> $GITHUB_ENV
+        echo "BUILD_MUNGE_CONTEXT=${MUNGE_CONTEXT}" >> $GITHUB_ENV
+        echo "BUILD_SSSD=${BUILD_SSSD}" >> $GITHUB_ENV
+        echo "BUILD_SSSD_CONTEXT=${SSSD_CONTEXT}" >> $GITHUB_ENV
+        echo "BUILD_SLURM_BASE=${BUILD_SLURM_BASE}" >> $GITHUB_ENV
+        echo "BUILD_SLURM_BASE_CONTEXT=${SLURM_BASE_CONTEXT}" >> $GITHUB_ENV
+        echo "BUILD_SLURMCTLD=${BUILD_SLURMCTLD}" >> $GITHUB_ENV
+        echo "BUILD_SLURMCTLD_CONTEXT=${SLURMCTLD_CONTEXT}" >> $GITHUB_ENV
+        echo "BUILD_SLURMD=${BUILD_SLURMD}" >> $GITHUB_ENV
+        echo "BUILD_SLURMD_CONTEXT=${SLURMD_CONTEXT}" >> $GITHUB_ENV
+        echo "BUILD_SLURMDBD=${BUILD_SLURMDBD}" >> $GITHUB_ENV
+        echo "BUILD_SLURMDBD_CONTEXT=${SLURMDBD_CONTEXT}" >> $GITHUB_ENV
+        echo "BUILD_SSHD=${BUILD_SSHD}" >> $GITHUB_ENV
+        echo "BUILD_SSHD_CONTEXT=${SSHD_CONTEXT}" >> $GITHUB_ENV
+        echo "BUILD_DEVELOP=${BUILD_DEVELOP}" >> $GITHUB_ENV
+        echo "BUILD_DEVELOP_CONTEXT=${DEVELOP_CONTEXT}" >> $GITHUB_ENV
+        echo "BUILD_WEB=${BUILD_WEB}" >> $GITHUB_ENV
+        echo "BUILD_WEB_CONTEXT=${WEB_CONTEXT}" >> $GITHUB_ENV
+
+        if [[ "${BASE_CHANGED}" == "true" || "${MUNGE_CHANGED}" == "true" || "${SSSD_CHANGED}" == "true" || "${SLURM_BASE_CHANGED}" == "true" || "${SLURMCTLD_CHANGED}" == "true" || "${SLURMD_CHANGED}" == "true" || "${SLURMDBD_CHANGED}" == "true" || "${SSHD_CHANGED}" == "true" || "${DEVELOP_CHANGED}" == "true" || "${WEB_CHANGED}" == "true" ]]; then
+          echo "NEED_BUILD=true" >> $GITHUB_ENV
+        fi
+
+    - name: Login to aliyun acr
+      uses: docker/login-action@v3
+      with:
+        registry: registry.cn-hangzhou.aliyuncs.com
+        username: ${{ vars.ALIYUN_ACR_USER }}
+        password: ${{ secrets.ALIYUN_ACR_TOKEN }}
+
+    - name: Set up QEMU
+      if: env.NEED_BUILD == 'true'
+      uses: docker/setup-qemu-action@v3
+
+    - name: Set up Docker Buildx
+      if: env.NEED_BUILD == 'true'
+      uses: docker/setup-buildx-action@v3
+      with:
+        install: true
+
+    - name: Cache Docker layers
+      if: env.NEED_BUILD == 'true'
+      uses: actions/cache@v4
+      with:
+        path: /tmp/.buildx-cache
+        key: ${{ runner.os }}-buildx-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-buildx-
+
+    - name: Build and push base image
+      if: ${{ env.BUILD_BASE == 'true' }}
+      uses: docker/build-push-action@v6
+      with:
+        context: ${{ env.BUILD_BASE_CONTEXT }}
+        tags: registry.cn-hangzhou.aliyuncs.com/troila-klcloud/ubuntu-base:24.04
+        push: true
+        cache-from: type=local,src=/tmp/.buildx-cache
+        cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
+
+    - name: Build and push munge image
+      if: ${{ env.BUILD_MUNGE == 'true' }}
+      uses: docker/build-push-action@v6
+      with:
+        context: ${{ env.BUILD_MUNGE_CONTEXT }}
+        tags: registry.cn-hangzhou.aliyuncs.com/troila-klcloud/ubuntu-munge:24.04
+        push: true
+        cache-from: type=local,src=/tmp/.buildx-cache
+        cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
+
+    - name: Build and push sssd image
+      if: ${{ env.BUILD_SSSD == 'true' }}
+      uses: docker/build-push-action@v6
+      with:
+        context: ${{ env.BUILD_SSSD_CONTEXT }}
+        tags: registry.cn-hangzhou.aliyuncs.com/troila-klcloud/ubuntu-sssd:24.04
+        push: true
+        cache-from: type=local,src=/tmp/.buildx-cache
+        cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
+
+    - name: Set up slurm debs repo
+      if: ${{ env.BUILD_SLURM_BASE == 'true' }} || ${{ env.BUILD_SLURMCTLD == 'true' }} || ${{ env.BUILD_SLURMD == 'true' }} || ${{ env.BUILD_SLURMDBD == 'true' }}
+      run: |
+        docker run -d --name=slurm-debs registry.cn-hangzhou.aliyuncs.com/troila-klcloud/ubuntu-slurm-repo:24.04
+        IPADD=$(docker inspect  -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' slurm-debs)
+        SLURM_REPO="deb [trusted=yes] http://${IPADD}:80/debs ./"
+        echo "SLURM_REPO=${SLURM_REPO}" >> $GITHUB_ENV
+  
+    - name: Build and push slurm-base image
+      if: ${{ env.BUILD_SLURM_BASE == 'true' }}
+      uses: docker/build-push-action@v6
+      with:
+        context: ${{ env.BUILD_SLURM_BASE_CONTEXT }}
+        build-args: SLURM_REPO=${{ env.SLURM_REPO }}
+        tags: registry.cn-hangzhou.aliyuncs.com/troila-klcloud/ubuntu-slurm-base:24.04
+        push: true
+        cache-from: type=local,src=/tmp/.buildx-cache
+        cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
+
+    - name: Build and push slurmctld image
+      if: ${{ env.BUILD_SLURMCTLD == 'true' }}
+      uses: docker/build-push-action@v6
+      with:
+        context: ${{ env.BUILD_SLURMCTLD_CONTEXT }}
+        build-args: SLURM_REPO=${{ env.SLURM_REPO }}
+        tags: registry.cn-hangzhou.aliyuncs.com/troila-klcloud/ubuntu-slurmctld:24.04
+        push: true
+        cache-from: type=local,src=/tmp/.buildx-cache
+        cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
+        network: host
+
+    - name: Build and push slurmd image
+      if: ${{ env.BUILD_SLURMD == 'true' }}
+      uses: docker/build-push-action@v6
+      with:
+        context: ${{ env.BUILD_SLURMD_CONTEXT }}
+        build-args: SLURM_REPO=${{ env.SLURM_REPO }}
+        tags: registry.cn-hangzhou.aliyuncs.com/troila-klcloud/ubuntu-slurmd:24.04
+        push: true
+        cache-from: type=local,src=/tmp/.buildx-cache
+        cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
+
+    - name: Build and push slurmdbd image
+      if: ${{ env.BUILD_SLURMDBD == 'true' }}
+      uses: docker/build-push-action@v6
+      with:
+        context: ${{ env.BUILD_SLURMDBD_CONTEXT }}
+        build-args: SLURM_REPO=${{ env.SLURM_REPO }}
+        tags: registry.cn-hangzhou.aliyuncs.com/troila-klcloud/ubuntu-slurmdbd:24.04
+        push: true
+        cache-from: type=local,src=/tmp/.buildx-cache
+        cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
+
+    - name: Build and push sshd image
+      if: ${{ env.BUILD_SSHD == 'true' }}
+      uses: docker/build-push-action@v6
+      with:
+        context: ${{ env.BUILD_SSHD_CONTEXT }}
+        tags: registry.cn-hangzhou.aliyuncs.com/troila-klcloud/ubuntu-sshd:24.04
+        push: true
+        cache-from: type=local,src=/tmp/.buildx-cache
+        cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
+
+    - name: Build and push develop image
+      if: ${{ env.BUILD_DEVELOP == 'true' }}
+      uses: docker/build-push-action@v6
+      with:
+        context: ${{ env.BUILD_DEVELOP_CONTEXT }}
+        tags: registry.cn-hangzhou.aliyuncs.com/troila-klcloud/ubuntu-development:24.04
+        push: true
+        cache-from: type=local,src=/tmp/.buildx-cache
+        cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
+
+    - name: Build and push web image
+      if: ${{ env.BUILD_WEB == 'true' }}
+      uses: docker/build-push-action@v6
+      with:
+        context: ${{ env.BUILD_WEB_CONTEXT }}
+        tags: registry.cn-hangzhou.aliyuncs.com/troila-klcloud/ubuntu-java:24.04
+        push: true
+        cache-from: type=local,src=/tmp/.buildx-cache
+        cache-to: type=local,dest=/tmp/.buildx-cache,mode=max

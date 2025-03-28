@@ -119,6 +119,7 @@ func generateSlurmConfig(cluster *slurmv1alpha1.Cluster) utils.ConfigFile {
 	res.AddProperty("SelectType", "select/cons_tres")
 	res.AddProperty("SelectTypeParameters", "CR_Core_Memory")
 	res.AddProperty("DefMemPerCPU", "1024")
+	res.AddProperty("PriorityWeightQOS", "10000")
 	res.AddComment("")
 	res.AddComment("LOGGING")
 	res.AddProperty("SlurmctldDebug", consts.SlurmDefaultDebugLevel)
@@ -126,10 +127,13 @@ func generateSlurmConfig(cluster *slurmv1alpha1.Cluster) utils.ConfigFile {
 	res.AddProperty("SlurmdDebug", consts.SlurmDefaultDebugLevel)
 	res.AddProperty("SlurmdLogFile", consts.SlurmLogFile)
 	res.AddComment("")
+	res.AddComment("Preempt Configuration")
+	res.AddProperty("PreemptMode", "REQUEUE")
+	res.AddProperty("PreemptType", "preempt/qos")
+	res.AddProperty("PreemptParameters", "youngest_first")
+	res.AddComment("")
 	res.AddComment("Partition Configuration")
 	res.AddProperty("JobRequeue", 1)
-	res.AddProperty("PreemptMode", "REQUEUE")
-	res.AddProperty("PreemptType", "preempt/partition_prio")
 
 	for _, nodeSet := range cluster.Spec.ComputingNodeSets {
 		for i := int32(0); i < nodeSet.Size; i++ {

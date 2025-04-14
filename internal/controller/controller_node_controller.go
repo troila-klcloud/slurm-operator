@@ -10,11 +10,36 @@ import (
 	"github.com/troila-klcloud/slurm-operator/internal/utils"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
+
+func generateControllerPersistentVolumeClaim(cluster slurmv1alpha1.Cluster) (*corev1.PersistentVolumeClaim, error) {
+	storageSize, err := resource.ParseQuantity("100Mi")
+	if err != nil {
+		return nil, err
+	}
+	return &corev1.PersistentVolumeClaim{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      utils.BuildPersistentVolumeClaimName(consts.ComponentTypeController, cluster.Name),
+			Namespace: cluster.Namespace,
+		},
+		Spec: corev1.PersistentVolumeClaimSpec{
+			AccessModes: []corev1.PersistentVolumeAccessMode{
+				corev1.ReadWriteMany,
+			},
+			Resources: corev1.VolumeResourceRequirements{
+				Requests: corev1.ResourceList{
+					corev1.ResourceStorage: storageSize,
+				},
+			},
+			StorageClassName: &cluster.Spec.CtrlNode.SpoolStorageClassName,
+		},
+	}, nil
+}
 
 func generateControllerNodeStatefulSet(cluster slurmv1alpha1.Cluster, spec slurmv1alpha1.CtrlNodeSpec) *appsv1.StatefulSet {
 	resourceList := corev1.ResourceList{corev1.ResourceCPU: spec.SlurmCtldContainer.CPU, corev1.ResourceMemory: spec.SlurmCtldContainer.Memory}
@@ -66,12 +91,7 @@ func generateControllerNodeStatefulSet(cluster slurmv1alpha1.Cluster, spec slurm
 						},
 					},
 					Volumes: []corev1.Volume{
-						{
-							Name: "slurm-spool",
-							VolumeSource: corev1.VolumeSource{
-								EmptyDir: &corev1.EmptyDirVolumeSource{},
-							},
-						},
+						renderSlurmCtrlSpoolVolume(utils.BuildPersistentVolumeClaimName(consts.ComponentTypeController, cluster.Name)),
 						renderSSSDConfigVolume(cluster.Name),
 						renderSSSLibVolume(),
 						renderHomeDirVolume(cluster),
@@ -92,6 +112,15 @@ func (r *ClusterReconciler) reconcileControllerNode(ctx context.Context, cluster
 	_, err := r.getOrCreateK8sResource(ctx, cluster, expectedSvc)
 	if err != nil {
 		return errors.Wrap(err, "Failed to reconcile controller node service")
+	}
+
+	expectedPvc, err := generateControllerPersistentVolumeClaim(*cluster)
+	if err != nil {
+		return errors.Wrap(err, "Failed to generate controller pvc")
+	}
+	_, err = r.getOrCreateK8sResource(ctx, cluster, expectedPvc)
+	if err != nil {
+		return errors.Wrap(err, "Failed to reconcile controller pvc")
 	}
 
 	expectedSts := generateControllerNodeStatefulSet(*cluster, spec)

@@ -66,7 +66,7 @@ func BuildServiceHostFQDN(
 	return hostName, hostFQDN
 }
 
-func BildPersistentVolumeClaimName(componentType consts.ComponentType, clusterName string) string {
+func BuildPersistentVolumeClaimName(componentType consts.ComponentType, clusterName string) string {
 	return namedEntity{
 		componentType: &componentType,
 		clusterName:   clusterName,

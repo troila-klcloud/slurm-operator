@@ -66,12 +66,7 @@ func generateControllerNodeStatefulSet(cluster slurmv1alpha1.Cluster, spec slurm
 						},
 					},
 					Volumes: []corev1.Volume{
-						{
-							Name: "slurm-spool",
-							VolumeSource: corev1.VolumeSource{
-								EmptyDir: &corev1.EmptyDirVolumeSource{},
-							},
-						},
+						renderSlurmCtrlSpoolVolume(cluster),
 						renderSSSDConfigVolume(cluster.Name),
 						renderSSSLibVolume(),
 						renderHomeDirVolume(cluster),

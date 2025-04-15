@@ -180,3 +180,14 @@ func renderSlurmConfigVolume(cluster slurmv1alpha1.Cluster, withGres bool) corev
 	}
 	return vol
 }
+
+func renderSlurmCtrlSpoolVolume(pvcName string) corev1.Volume {
+	return corev1.Volume{
+		Name: "slurm-spool",
+		VolumeSource: corev1.VolumeSource{
+			PersistentVolumeClaim: &corev1.PersistentVolumeClaimVolumeSource{
+				ClaimName: pvcName,
+			},
+		},
+	}
+}

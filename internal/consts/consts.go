@@ -73,6 +73,8 @@ const (
 
 	LabelManagedByKey   = "app.kubernetes.io/managed-by"
 	LabelManagedByValue = slurmOperator
+
+	LabelComputingSetPartitonKey = "app.kubernetes.io/computing-set-partiton"
 )
 
 const (

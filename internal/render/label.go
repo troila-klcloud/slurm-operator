@@ -24,3 +24,24 @@ func RenderMatchLabels(componentType consts.ComponentType, clusterName string) m
 		consts.LabelComponentKey: componentType.String(),
 	}
 }
+
+func RenderComputingNodeSetLables(clusterName string, partition string) map[string]string {
+	return map[string]string{
+		consts.LabelNameKey:                 consts.LabelNameValue,
+		consts.LabelInstanceKey:             clusterName,
+		consts.LabelComponentKey:            consts.ComponentTypeComputing.String(),
+		consts.LabelComputingSetPartitonKey: partition,
+		consts.LabelPartOfKey:               consts.LabelPartOfValue,
+		consts.LabelManagedByKey:            consts.LabelManagedByValue,
+	}
+}
+
+func RenderComputingNodeSetMatchLabels(clusterName string) map[string]string {
+	return map[string]string{
+		consts.LabelNameKey:      consts.LabelNameValue,
+		consts.LabelInstanceKey:  clusterName,
+		consts.LabelComponentKey: consts.ComponentTypeComputing.String(),
+		consts.LabelPartOfKey:    consts.LabelPartOfValue,
+		consts.LabelManagedByKey: consts.LabelManagedByValue,
+	}
+}

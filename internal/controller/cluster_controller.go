@@ -69,7 +69,7 @@ func ignoreNotFound(err error) error {
 // +kubebuilder:rbac:groups=slurm.kunluncloud.com,resources=clusters,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=slurm.kunluncloud.com,resources=clusters/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=slurm.kunluncloud.com,resources=clusters/finalizers,verbs=update
-// +kubebuilder:rbac:groups="",resources=pods,verbs=get;list;watch
+// +kubebuilder:rbac:groups="",resources=pods,verbs=get;list;watch;delete
 // +kubebuilder:rbac:groups="",resources=events,verbs=get;list;watch;create;patch
 // +kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;watch;create;patch;update;delete
 // +kubebuilder:rbac:groups="",resources=services,verbs=get;list;watch;create;patch;delete

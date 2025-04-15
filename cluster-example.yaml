@@ -4,7 +4,7 @@ metadata:
   name: cluster-example-pvc
   namespace: ns-02
 spec:
-  storageClassName: juicefs-sc
+  storageClassName: seaweedfs-storage
   accessModes:
     - ReadWriteMany
   resources:
@@ -38,7 +38,7 @@ spec:
       imagePullPolicy: IfNotPresent
   controllerNode:
     size: 2
-    spoolStroageClassName: juicefs-sc
+    spoolStroageClassName: seaweedfs-storage
     mungeContainer:
       cpu:  100m
       memory: 100Mi
@@ -70,7 +70,7 @@ spec:
     cpu: 200m
     memory: 1Gi
     storage:
-      storageClassName: juicefs-sc
+      storageClassName: seaweedfs-storage
       size: 5Gi
   webNode:
     size: 1

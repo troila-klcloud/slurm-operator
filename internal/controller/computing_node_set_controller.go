@@ -16,6 +16,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -36,6 +37,7 @@ func generateComputingNodeSetStatefulSet(cluster slurmv1alpha1.Cluster, spec slu
 			Name:        utils.BuildStatefulSetName(component, cluster.Name),
 			Namespace:   cluster.Namespace,
 			Annotations: render.RenderWaveAnnotations(),
+			Labels:      render.RenderComputingNodeSetLables(cluster.Name, spec.PartitionName),
 		},
 		Spec: appsv1.StatefulSetSpec{
 			ServiceName: utils.BuildServiceName(component, cluster.Name),
@@ -95,6 +97,29 @@ func generateComputingNodeSetStatefulSet(cluster slurmv1alpha1.Cluster, spec slu
 
 func (r *ClusterReconciler) reconcileComputingNodeSets(ctx context.Context, cluster *slurmv1alpha1.Cluster, nodeSets []slurmv1alpha1.ComputingNodeSetSpec) error {
 	log := log.FromContext(ctx)
+	stsList := appsv1.StatefulSetList{}
+	stsSelector := labels.Set(render.RenderComputingNodeSetMatchLabels(cluster.Name)).AsSelector()
+	if err := r.List(ctx, &stsList, &client.ListOptions{LabelSelector: stsSelector}); err != nil {
+		msg := fmt.Sprintf("Failed to list computing node set, cluster: %s", cluster.Name)
+		log.Error(err, msg)
+		return errors.Wrap(err, msg)
+	}
+	for _, sts := range stsList.Items {
+		needDelete := true
+		for _, nodeSet := range nodeSets {
+			if sts.Labels[consts.LabelComputingSetPartitonKey] == nodeSet.PartitionName {
+				needDelete = false
+				break
+			}
+		}
+		if needDelete {
+			if err := r.Delete(ctx, &sts); err != nil {
+				msg := fmt.Sprintf("Failed to delete redundant statefulset: %s", sts.Name)
+				log.Error(err, msg)
+				return errors.Wrap(err, msg)
+			}
+		}
+	}
 	for _, nodeSet := range nodeSets {
 		component := utils.StringToComponent(consts.ComponentTypeComputing.String(), nodeSet.PartitionName)
 
@@ -127,6 +152,7 @@ func (r *ClusterReconciler) reconcileComputingNodeSets(ctx context.Context, clus
 				available = true
 			}
 			patch := client.MergeFrom(objSts.DeepCopy())
+			objSts.Labels = expectedSts.Labels
 			objSts.Spec.Replicas = expectedSts.Spec.Replicas
 			objSts.Spec.Template.Spec.Containers = expectedSts.Spec.Template.Spec.Containers
 			objSts.Spec.Template.Spec.Volumes = expectedSts.Spec.Template.Spec.Volumes
@@ -134,6 +160,55 @@ func (r *ClusterReconciler) reconcileComputingNodeSets(ctx context.Context, clus
 				msg := "Failed to patch computing node set statefulset"
 				log.Error(err, msg)
 				return errors.Wrap(err, msg)
+			}
+			podList := &corev1.PodList{}
+			selector := labels.Set(objSts.Spec.Selector.MatchLabels).AsSelector()
+			if err := r.List(ctx, podList, &client.ListOptions{LabelSelector: selector}); err != nil {
+				msg := fmt.Sprintf("Failed to list pod own to statefulset: %s", objSts.Name)
+				log.Error(err, msg)
+				return errors.Wrap(err, msg)
+			}
+			cpuAmount := resource.Quantity{}
+			memAmount := resource.Quantity{}
+			for _, container := range expectedSts.Spec.Template.Spec.Containers {
+				if container.Name == "slurm" {
+					for key, value := range container.Resources.Requests {
+						if key == corev1.ResourceCPU {
+							cpuAmount = value
+						}
+						if key == corev1.ResourceMemory {
+							memAmount = value
+						}
+					}
+				}
+			}
+			for _, pod := range podList.Items {
+				if pod.Status.Phase == corev1.PodPending {
+					for _, container := range pod.Spec.Containers {
+						if container.Name == "slurm" {
+							for key, value := range container.Resources.Requests {
+								if key == corev1.ResourceCPU {
+									if cpuAmount != value {
+										if err := r.Delete(ctx, &pod); err != nil {
+											msg := fmt.Sprintf("Failed to delete pending pod: %s", pod.Name)
+											log.Error(err, msg)
+											return errors.Wrap(err, msg)
+										}
+									}
+								}
+								if key == corev1.ResourceMemory {
+									if memAmount != value {
+										if err := r.Delete(ctx, &pod); err != nil {
+											msg := fmt.Sprintf("Failed to delete pending pod: %s", pod.Name)
+											log.Error(err, msg)
+											return errors.Wrap(err, msg)
+										}
+									}
+								}
+							}
+						}
+					}
+				}
 			}
 		}
 		if !available {

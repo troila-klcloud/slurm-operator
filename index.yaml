@@ -2,6 +2,20 @@ apiVersion: v1
 entries:
   slurm-operator:
   - apiVersion: v2
+    appVersion: v1.0.2
+    created: "2025-04-15T05:29:03.813168951Z"
+    description: A Helm chart for slurm-operator
+    digest: 1fcab4cbbcb528d55d9260390f9ee1f9148926af98d2990682615084815c780a
+    home: https://github.com/troila-klcloud/slurm-operator
+    maintainers:
+    - email: klcsales@troila.com
+      name: klcloud
+    name: slurm-operator
+    type: application
+    urls:
+    - https://github.com/troila-klcloud/slurm-operator/releases/download/slurm-operator-1.0.4/slurm-operator-1.0.4.tgz
+    version: 1.0.4
+  - apiVersion: v2
     appVersion: v1.0.1
     created: "2025-04-15T05:26:29.282910021Z"
     description: A Helm chart for slurm-operator
@@ -43,4 +57,4 @@ entries:
     urls:
     - https://github.com/troila-klcloud/slurm-operator/releases/download/slurm-operator-1.0.1/slurm-operator-1.0.1.tgz
     version: 1.0.1
-generated: "2025-04-15T05:26:29.28292569Z"
+generated: "2025-04-15T05:29:03.813187196Z"

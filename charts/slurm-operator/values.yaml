@@ -2,7 +2,7 @@ replicaCount: 3
 image:
   repository: registry.cn-hangzhou.aliyuncs.com/troila-klcloud/slurm-operator
   pullPolicy: IfNotPresent
-  tag: v1.0.1
+  tag: v1.0.2
 imagePullSecrets: []
 nameOverride: ''
 fullnameOverride: ''

@@ -61,6 +61,18 @@ rules:
   - patch
   - watch
 - apiGroups:
+  - batch
+  resources:
+  - cronjobs
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
   - k8s.mariadb.com
   resources:
   - grants

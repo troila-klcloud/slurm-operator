@@ -36,6 +36,12 @@ spec:
         - -ldap-skip-insecure-tls=false
         {{- end }}
         - -ldap-uri={{ .Values.ldap.uri }}
+        {{- if .Values.recoveringJob.image }}
+        - -recovering-job-image={{ .Values.recoveringJob.image }}
+        {{- end }}
+        {{- if .Values.recoveringJob.schedule }}
+        - -recovering-job-schedule={{ .Values.recoveringJob.schedule }}
+        {{- end }}
         command:
         - /manager
         env:

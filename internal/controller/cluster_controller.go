@@ -22,6 +22,7 @@ import (
 	"strings"
 
 	appsv1 "k8s.io/api/apps/v1"
+	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -77,6 +78,7 @@ func ignoreNotFound(err error) error {
 // +kubebuilder:rbac:groups="",resources=persistentvolumeclaims,verbs=get;list;watch;create;patch;delete
 // +kubebuilder:rbac:groups=apps,resources=statefulsets,verbs=get;list;watch;create;patch;delete
 // +kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;patch;delete
+// +kubebuilder:rbac:groups=batch,resources=cronjobs,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=k8s.mariadb.com,resources=mariadbs,verbs=get;list;watch;create;patch;delete
 // +kubebuilder:rbac:groups=k8s.mariadb.com,resources=grants,verbs=get;list;watch;create;patch;delete
 
@@ -189,6 +191,10 @@ func (r *ClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		return ctrl.Result{}, errors.Wrap(err, "Failed to reconcile web node set")
 	}
 
+	if err = r.reconcileRecoveringCronJob(ctx, cluster, cluster.Spec.LoginNode); err != nil {
+		return ctrl.Result{}, errors.Wrap(err, "Failed to reconcile recovering cron job")
+	}
+
 	return ctrl.Result{}, nil
 }
 
@@ -220,6 +226,8 @@ func (r *ClusterReconciler) getOrCreateK8sResource(ctx context.Context, cluster 
 		found = &appsv1.StatefulSet{}
 	case *appsv1.Deployment:
 		found = &appsv1.Deployment{}
+	case *batchv1.CronJob:
+		found = &batchv1.CronJob{}
 	case *mariadbv1alpha1.MariaDB:
 		found = &mariadbv1alpha1.MariaDB{}
 	case *mariadbv1alpha1.Grant:

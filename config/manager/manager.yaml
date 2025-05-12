@@ -69,6 +69,8 @@ spec:
           - -ldap-searce-base=dc=example,dc=org
           - -ldap-skip-insecure-tls=true
           - -ldap-uri=ldap://openldap.openldap.svc.cluster.local
+          - -recovering-job-image=registry.cn-hangzhou.aliyuncs.com/troila-klcloud/ubuntu-recovering:24.04
+          - -recovering-job-schedule=*/5 * * * *
         image: registry.cn-hangzhou.aliyuncs.com/troila-klcloud/slurm-operator:v0.1.9
         name: manager
         ports: []

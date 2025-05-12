@@ -96,6 +96,11 @@ func main() {
 		config.LdapConfig.LDAPSearchBase, "The default base DN to use for performing LDAP user operations.")
 	flag.BoolVar(&config.LdapConfig.SkipInsecureTLS, "ldap-skip-insecure-tls", config.LdapConfig.SkipInsecureTLS,
 		"Whether to skip verifing certificate")
+	flag.StringVar(&config.RecoveringJobConfig.Image, "recovering-job-image",
+		config.RecoveringJobConfig.Image, "The default image of cron job used to restore slurm.")
+	flag.StringVar(&config.RecoveringJobConfig.Schedule, "recovering-job-schedule",
+		config.RecoveringJobConfig.Schedule, "The default cron expression of cron job used to restore slurm.")
+
 	opts := zap.Options{
 		Development: true,
 	}

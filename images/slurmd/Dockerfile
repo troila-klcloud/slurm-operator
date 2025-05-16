@@ -8,4 +8,6 @@ RUN echo ${SLURM_REPO} > /etc/apt/sources.list.d/slurm.list \
     && apt clean \
     && rm -rf /etc/apt/sources.list.d/slurm.list 
 
-CMD ["/usr/sbin/slurmd",  "-D"]
+COPY startup.sh /startup.sh
+
+CMD ["/startup.sh"]

@@ -172,12 +172,6 @@ func renderSlurmConfigVolume(cluster slurmv1alpha1.Cluster, withGres bool) corev
 			},
 		},
 	}
-	if withGres {
-		vol.VolumeSource.ConfigMap.Items = append(
-			vol.VolumeSource.ConfigMap.Items,
-			corev1.KeyToPath{Key: consts.ConfigMapKeyGresConfig, Path: consts.ConfigMapKeyGresConfig},
-		)
-	}
 	return vol
 }
 

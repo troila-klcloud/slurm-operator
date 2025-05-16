@@ -65,7 +65,7 @@ func generateComputingNodeSetStatefulSet(cluster slurmv1alpha1.Cluster, spec slu
 							},
 							VolumeMounts: []corev1.VolumeMount{
 								{Name: "home-dir", MountPath: "/home"},
-								{Name: "slurm-config", MountPath: "/etc/slurm/"},
+								{Name: "slurm-config", MountPath: "/tmp/slurm/"},
 								{Name: "munge-run", MountPath: "/run/munge/"},
 								{
 									Name:      "munge-key",

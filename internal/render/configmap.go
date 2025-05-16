@@ -27,19 +27,10 @@ func RenderConfigMapSlurmConfigs(cluster *slurmv1alpha1.Cluster) *corev1.ConfigM
 		},
 		Data: map[string]string{
 			consts.ConfigMapKeySlurmConfig:  generateSlurmConfig(cluster).Render(),
-			consts.ConfigMapKeyGresConfig:   generateGresConfig().Render(),
 			consts.ConfigMapKeySSSDConfig:   generateSSSdConfig().Render(),
 			consts.ConfigMapKeyCGroupConfig: generateCgroupConfig().Render(),
 		},
 	}
-}
-
-func generateGresConfig() utils.ConfigFile {
-	res := &utils.PropertiesConfig{}
-	res.AddLine("Name=gpu Type=nvidia File=/dev/nvidia0")
-	res.AddLine("Name=shard Count=8 File=/dev/nvidia0")
-	res.AddLine("\n")
-	return res
 }
 
 func generateSlurmConfig(cluster *slurmv1alpha1.Cluster) utils.ConfigFile {
